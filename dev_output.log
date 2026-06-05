@@ -4,17 +4,18 @@
 
  ⨯ Failed to start server
 Error: listen EADDRINUSE: address already in use :::3000
-    at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
-    at listen (node_modules/next/src/server/lib/start-server.ts:361:11)
-    at new Promise (<anonymous>)
-    at startServer (node_modules/next/src/server/lib/start-server.ts:218:8)
-    at startServer (node_modules/next/src/server/lib/start-server.ts:404:8)
-    at fn (node_modules/next/src/trace/trace.ts:143:19)
-    at traceAsyncFn (node_modules/next/src/server/lib/start-server.ts:403:28) {
-  code: 'EADDRINUSE',
-  errno: -98,
-  syscall: 'listen',
-  address: '::',
-  port: 3000
-}
-[?25h
+    at <unknown> (Error: listen EADDRINUSE: address al ⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+ ⚠ Port 3000 is in use, trying 3001 instead.
+   ▲ Next.js 15.0.3
+   - Local:        http://localhost:3000
+
+ ✓ Starting...
+ ⚠ Invalid next.config.ts options detected:
+ ⚠     Unrecognized key(s) in object: 'allowedHosts' at "experimental"
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ✓ Ready in 4.8s
+Killed
+ct: 'allowedHosts' at "experimental"
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ✓ Ready in 5s
+Killed
