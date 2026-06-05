@@ -4,13 +4,22 @@ import Categories from '@/components/home/Categories'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { MapPin, Mail } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient()
+
+  const { data: featuredRestaurants } = await supabase
+    .from('restaurants')
+    .select('*')
+    .limit(3)
+    .order('rating', { ascending: false })
+
   return (
     <div className="flex flex-col">
       <Hero />
       <Categories />
-      <FeaturedRestaurants />
+      <FeaturedRestaurants restaurants={featuredRestaurants || []} />
 
       {/* Interactive Map Preview */}
       <section className="py-16 bg-white border-y border-cream-dark">

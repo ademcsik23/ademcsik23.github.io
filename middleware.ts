@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { updateSession } from '@/lib/supabase/middleware'
 
-export function middleware(request: NextRequest) {
-  const response = NextResponse.next()
+export async function middleware(request: NextRequest) {
+  const response = await updateSession(request)
 
   // Add some security and performance headers
   response.headers.set('X-DNS-Prefetch-Control', 'on')
