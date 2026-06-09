@@ -1,13 +1,15 @@
 'use client'
 
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api'
 import { Star } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { Restaurant } from '@/types'
 
 const containerStyle = {
   width: '100%',
@@ -19,54 +21,32 @@ const center = {
   lng: -73.9982
 }
 
-const RESTAURANTS = [
-  {
-    id: '1',
-    name: 'The Old Tappan Tavern',
-    cuisine: 'American',
-    rating: 4.8,
-    price_range: '$$',
-    lat: 41.0187,
-    lng: -73.9982,
-    image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&q=80&w=200',
-  },
-  {
-    id: '2',
-    name: 'Patisserie Florentine',
-    cuisine: 'Bakery',
-    rating: 4.9,
-    price_range: '$',
-    lat: 41.0215,
-    lng: -73.9945,
-    image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&q=80&w=200',
-  },
-  {
-    id: '3',
-    name: 'Il Forno',
-    cuisine: 'Italian',
-    rating: 4.7,
-    price_range: '$$$',
-    lat: 41.0155,
-    lng: -73.9912,
-    image: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=200',
-  },
-]
-
 export default function MapPage() {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
   })
 
-  const [selectedRestaurant, setSelectedRestaurant] = useState<typeof RESTAURANTS[0] | null>(null)
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([])
+  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const supabase = createClient()
+
+  useEffect(() => {
+    async function loadRestaurants() {
+      if (typeof supabase.from !== 'function') return
+      const { data } = await supabase.from('restaurants').select('*')
+      if (data) setRestaurants(data)
+    }
+    loadRestaurants()
+  }, [supabase])
 
   const filteredRestaurants = useMemo(() => {
-    return RESTAURANTS.filter(r =>
+    return restaurants.filter(r =>
       r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.cuisine.toLowerCase().includes(searchQuery.toLowerCase())
     )
-  }, [searchQuery])
+  }, [searchQuery, restaurants])
 
   if (!isLoaded) return <div className="h-screen w-full flex items-center justify-center">Loading Maps...</div>
 
@@ -83,11 +63,6 @@ export default function MapPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="flex-1">Cuisine</Button>
-            <Button variant="outline" size="sm" className="flex-1">Rating</Button>
-            <Button variant="outline" size="sm" className="flex-1">Price</Button>
           </div>
         </div>
       </div>
@@ -116,20 +91,20 @@ export default function MapPage() {
           {filteredRestaurants.map((restaurant) => (
             <Marker
               key={restaurant.id}
-              position={{ lat: restaurant.lat, lng: restaurant.lng }}
+              position={{ lat: restaurant.latitude, lng: restaurant.longitude }}
               onClick={() => setSelectedRestaurant(restaurant)}
             />
           ))}
 
           {selectedRestaurant && (
             <InfoWindow
-              position={{ lat: selectedRestaurant.lat, lng: selectedRestaurant.lng }}
+              position={{ lat: selectedRestaurant.latitude, lng: selectedRestaurant.longitude }}
               onCloseClick={() => setSelectedRestaurant(null)}
             >
               <div className="p-1 max-w-[200px]">
                 <div className="relative h-24 w-full rounded-lg overflow-hidden mb-2">
                   <Image
-                    src={selectedRestaurant.image}
+                    src={selectedRestaurant.featured_image}
                     alt={selectedRestaurant.name}
                     fill
                     className="object-cover"
@@ -149,11 +124,6 @@ export default function MapPage() {
             </InfoWindow>
           )}
         </GoogleMap>
-      </div>
-
-      {/* Floating Result List (Mobile) */}
-      <div className="absolute bottom-8 left-0 w-full px-4 md:hidden pointer-events-none">
-          {/* Add a horizontal carousel of restaurant cards here later */}
       </div>
     </div>
   )
